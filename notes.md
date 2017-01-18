@@ -6,11 +6,29 @@ header-includes:
 geometry: margin=1.5in
 ---
 
-# Asymptotic Analysis I
+# Asymptotic Analysis
 
-## Analyzing Code (Worst-Case)
+## Big-Oh Notation
 
-### Constant Operations (Approximations)
+### Definition
+
+We have that a function $ f \in O(g(n)) $ if and only if there exists constants
+$ c $ and $ n_0 $ such that $ f(n) \leq c g(n) $ for all $ n \geq n_0 $.
+
+We have that a function $ f \in \Omega(g(n)) $ if and only if there exists
+constants $ c $ and $ n_0 $ such that $ f(n) \leq c g(n) $ for all $ n \leq n_0
+$.
+
+We have that a function $ f \in \Theta(g(n)) $ if and only if $ f \in O(g(n)) $
+and $ f \in \Omega(g(n)) $.
+
+This notation can be used to analyze the best-case, average-case, and
+worse-case efficiency of an algorithm, but this class typically concerns the
+worst-case efficiency of an algorithm.
+
+Note that efficiency can be a measure of time, space, or even power complexity.
+
+### Assumption: Constant Operations (Approximations)
 
 - Arithmetic (fixed width)
 - Assignment
@@ -98,4 +116,107 @@ T(n) &= 10 + T\left(\frac{n}{2}\right) \\
 &= 10 + \left(10 + T\left(\frac{n}{4}\right)\right) \\
 &= 10 + \left(10 + \left(10 + T\left(\frac{n}{8}\right)\right)\right) \\
 &= 10k + T\left(\frac{n}{2^k}\right).
+\end{align*}
+
+To solve this, there are a couple methods.
+
+## Methods of Asymptotic Analysis
+
+### Method 1
+
+Let $ \frac{n}{2^k} = 1 $, so then $ k = \log n $. Then
+
+\begin{align*}
+T(n) &= 10 \log n + T(\frac{n}\frac{2^{\log n}}) \\
+&=  10 \log n + T(1) \\
+&= 10 \log n + 10 \\
+&\in O(\log n).
+\end{align*}
+
+However, this method actually gives you a big-theta approximation for $ T $; in
+other words, not only is $ T \in O(\log n) $, we also have that $ T \in
+\Theta(\log n) $.
+
+### Method 2 (Substitution Method)
+
+*Method 2* (**Substitution Method**): guess $ O(?) $, for example (in this case)
+$ \log n $ because we have something like $\frac{n}{2^n}$ in the formula. Then:
+\begin{align*}
+T(n) &= 10 + T(n/2) \\
+&= 10 + \log (n/2)
+\end{align*}
+Because we have guessed that $ T \in O(\log n) $, we have that $ T \leq c \log n $
+for some constant $ c $.
+\begin{align*}
+T(n) &\leq c \log n \\
+10 + \log (n/2) &\leq c \log n \\
+10 + \log (n) - \log (2) &\leq c \log n \\
+\frac{10 + \log (n) - \log (2)}{\log n} &\leq c \\
+\frac{10}{\log n} + 1 - \frac{\log (2)}{\log n} &\leq c \\
+\frac{10}{\log n} + 1 - \frac{1}{\log n} &\leq c
+\end{align*}
+Now, because we are dealing with **asymptotic analysis**, we can take $ n \geq 2
+$, so $ \log n \geq 1 $. Therefore, we have that :
+\begin{align*}
+c \geq \frac{10}{1} + 1 - \frac{1}{1} \\
+c \geq 10
+\end{align*}
+Therefore, $ T \in O(\log n) $ because with $ c = 10 $ and $ n_0 = 2 $, we have
+that $ T(n) \leq c \log (n) $ for all $ n \geq n_0 $.
+
+Note that the substituion
+method is more general than *Method 1*, but it does *not* give you a big-theta
+approximation (unlike *Method 1*).
+
+### Examples
+
+*Example 1*: $f(n) = 45 n \log n + 2n^2 + 65 $. We will use the substitution
+method, with a guess of $ f \in O(n^2) $.
+
+\begin{align*}
+cn^2 &\geq 45n \log n + 2n^2 + 65 \\
+c&\geq \frac{45n \log n + 2n^2 + 65}{n^2} \\
+c&\geq \frac{45 \log n}{n} + 2 + \frac{65}{n^2} \\
+\end{align*}
+
+TODO
+
+## The Towers of Hanoi
+
+### Gameplay
+
+The goal of the Towers of Hanoi is to move all disks to goal peg, with the
+following rules:
+- You can only move one disk at a time
+- You can only move the top-most disk in a pile
+- You cannot put a larger disk on top of a smaller one
+
+### Algorithmic Solution
+
+```
+if n = 1:                                => T(1)
+    move to goal (base case)                  = 1
+else:                                    => T(n)
+    move top n-1 disks to temporary peg       = T(n - 1)
+    move bottom disk to goal                  + T(1)
+    move the n-1 disks to goal                + T(n - 1)
+```
+
+Thus, $ T(n) = T(n-1) + T(1) + T(n-1) $, with $ T(1) = 1 $. So:
+\begin{align*}
+T(n) &= 2T(n-1) + 1 \\
+&= 2(2T(n-2) + 1) + 1 \\
+&= 4T(n-2) + 3 \\
+&= 4(2T(n-3) + 1) + 3 \\
+&= 8T(n-3) + 7.
+\end{align*}
+By inspection, we have:
+\begin{align*}
+T(n) = 2^{n-1} T(1) + (2^{n-1}) - 1),
+\end{align*}
+but $T(1) = 1 $, so we have:
+\begin{align*}
+T(n) = 2^{n-1} + 2^{n-1} - 1,
+&= 2^n - 1
+&\in \Theta(2^n).
 \end{align*}
