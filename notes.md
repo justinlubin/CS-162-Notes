@@ -121,7 +121,8 @@ To solve this, there are a couple methods.
 
 ### Method 1
 
-Let $\frac{n}{2^k} = 1$, so then $k = \log n$. Then
+We know $T(1)$, so we should try to express this formula in terms of $T(1)$. To
+do so, let $\frac{n}{2^k} = 1$, so then $k = \log n$. Then
 \begin{align*}
 T(n) &= 10 \log n + T\left(\frac{n}{2^{\log n}}\right) \\
 &=  10 \log n + T(1) \\
@@ -159,21 +160,8 @@ c \geq 10
 Therefore, $T \in O(\log n)$ because with $c = 10$ and $n_0 = 2$, we have
 that $T(n) \leq c \log n$ for all $n \geq n_0$.
 
-Note that the substituion
-method is more general than *Method 1*, but it does *not* give you a big-theta
-approximation (unlike *Method 1*).
-
-### Examples
-
-*Example 1*: $f(n) = 45 n \log n + 2n^2 + 65$. We will use the substitution
-method, with a guess of $f \in O(n^2)$.
-\begin{align*}
-cn^2 &\geq 45n \log n + 2n^2 + 65 \\
-c&\geq \frac{45n \log n + 2n^2 + 65}{n^2} \\
-c&\geq \frac{45 \log n}{n} + 2 + \frac{65}{n^2} \\
-\end{align*}
-
-TODO
+Note that the substituion method is more general than *Method 1*, but it does
+*not* give you a big-theta approximation (unlike *Method 1*).
 
 ## The Towers of Hanoi
 
@@ -211,7 +199,101 @@ T(n) = 2^{n-1} T(1) + (2^{n-1} - 1),
 \end{align*}
 but $T(1) = 1$, so we have:
 \begin{align*}
-T(n) = 2^{n-1} + 2^{n-1} - 1, \\
+T(n) &= 2^{n-1} + 2^{n-1} - 1 \\
 &= 2^n - 1 \\
 &\in \Theta(2^n).
 \end{align*}
+
+## Mergesort
+
+### Description
+
+To mergesort a list, split the list into two and sort the sublists. To merge
+them back together, interleave the elements.  Interleaving / merging is $O(n)$
+and there are $O(\log n)$ splits, so mergesort is $O(n \log n)$.
+
+Mergesort is based on the trick that it is really easy to interleave two sorted
+lists.
+
+### Example
+```
+8 2 9 4 5 3 1 6
+=> 8 2 9 4
+   => 8 2
+      => 8
+      => 2
+      merge: 2 8
+   => 9 4
+      => 9
+      => 4
+      merge: 4 9
+   merge: 2 4 8 9
+=>  5316
+   => 5 3
+      => 5
+      => 3
+      merge: 3 5
+   => 1 6
+      => 1
+      => 6
+      merge: 1 6
+   merge: 1 3 5 6
+merge: 1 2 3 4 5 6 8 9
+```
+
+### Analysis
+
+We have that $T(1) = 1$ and $T(n) = 2T(n/2) + n$ (split into two sublists, then
+mergesort them, then merge / interleave them). We then have that:
+\begin{align*}
+T(n) &= 2T(n/2) + n \\
+&= 2(T(n/4) + n/2) + n \\
+&= 2T(n/4) + 2n \\
+&= 4(2T(n/8) + n/8) + 2n \\
+&= 8T(n/8) + 3n \\
+&= 2^k T(n/2^k) + kn
+\end{align*}
+Set $n/2^k = 1$ (because we are using **Method 1**), so $k = \log n$. Then:
+\begin{align*}
+T(n) &= 2^{\log n} T(n/2^{\log n}) + (\log n) n \\
+&= nT(1) + n \log n \\
+&= n + n \log n \\
+&\in \Theta(n \log n)
+\end{align*}
+
+# Algorithm Correctness
+
+## Key Parts of an Algorithm
+
+There are a couple key things that every algorithm needs:
+
+- Inputs
+- Outputs
+- Preconditions (restrictions on input)
+- Postconditions (restrictions on output)
+- Step-by-step process specification (either in natural language or pseudocode)
+
+Therefore, we can define a "correct" algorithm to be one that, given any input
+data that satisfies the precondition, produces output data that satisfies the
+postcondition *and* terminates (stops) in finite time.
+
+## Proving Correctness
+
+### Example 1
+
+Consider the following pseudocode to swap two variables:
+```
+Swap1(x, y)
+    aux := x
+    x := y
+    y := x
+```
+
+#### Proof of Correctness
+
+1. Precondition: `x = a` and `y = b`
+1. Postcondition: `x = b` and `y = a`
+1. `aux := x` implies `aux := a`
+1. `x := y` implies `x := b`
+1. `y := aux` implies `y := a`
+1. Thus, `x := b` and `y := a`, so the postcondition is satisfied
