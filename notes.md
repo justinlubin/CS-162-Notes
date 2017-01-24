@@ -3,12 +3,12 @@ title: CS 162 Notes (Winter 2017)
 author: Justin Lubin
 header-includes:
     - \usepackage{inconsolata}
-geometry: margin=1in
+geometry: margin=1.5in
 ---
 
 # Asymptotic Analysis
 
-## Big-Oh Notation
+## Big-O Notation
 
 ### Definition
 
@@ -119,7 +119,7 @@ To solve this, there are a couple methods.
 
 ## Methods of Asymptotic Analysis
 
-### Method 1
+### Expansion Method
 
 We know $T(1)$, so we should try to express this formula in terms of $T(1)$. To
 do so, let $\frac{n}{2^k} = 1$, so then $k = \log n$. Then
@@ -133,7 +133,10 @@ However, this method actually gives you a big-theta approximation for $T$; in
 other words, not only is $T \in O(\log n)$, we also have that $T \in
 \Theta(\log n)$.
 
-### Method 2 (Substitution Method)
+### Substitution Method
+
+**IMPORTANT NOTE**: This method is *not* recommended. Because it actually
+requires an inductive proof (not covered).
 
 Guess $O(?)$, then check. For example (in this case), guess $\log n$ because we
 have something like $\frac{n}{2^n}$ in the formula. Then:
@@ -160,8 +163,9 @@ c \geq 10
 Therefore, $T \in O(\log n)$ because with $c = 10$ and $n_0 = 2$, we have
 that $T(n) \leq c \log n$ for all $n \geq n_0$.
 
-Note that the substituion method is more general than *Method 1*, but it does
-*not* give you a big-theta approximation (unlike *Method 1*).
+Note that the substituion method is more general than the **Expansion Method**,
+but it does *not* give you a big-theta approximation (unlike the **Expansion
+Method**).
 
 ## The Towers of Hanoi
 
@@ -253,8 +257,8 @@ T(n) &= 2T(n/2) + n \\
 &= 8T(n/8) + 3n \\
 &= 2^k T(n/2^k) + kn
 \end{align*}
-Set $n/2^k = 1$ (because we are using **Method 1**), so $k = \log n$. Then:
-\begin{align*}
+Set $n/2^k = 1$ (because we are using the **Expansion Method**), so $k = \log
+n$.  Then: \begin{align*}
 T(n) &= 2^{\log n} T(n/2^{\log n}) + (\log n) n \\
 &= nT(1) + n \log n \\
 &= n + n \log n \\
@@ -279,21 +283,117 @@ postcondition *and* terminates (stops) in finite time.
 
 ## Proving Correctness
 
-### Example 1
+### Basic Example
 
 Consider the following pseudocode to swap two variables:
 ```
-Swap1(x, y)
+swap(x, y)
     aux := x
     x := y
     y := x
 ```
 
-#### Proof of Correctness
+The following is a proof of correctness of `swap`:
 
-1. Precondition: `x = a` and `y = b`
-1. Postcondition: `x = b` and `y = a`
-1. `aux := x` implies `aux := a`
-1. `x := y` implies `x := b`
-1. `y := aux` implies `y := a`
-1. Thus, `x := b` and `y := a`, so the postcondition is satisfied
+1. Precondition: `x = a` and `y = b`.
+1. Postcondition: `x = b` and `y = a`.
+1. `aux := x` implies `aux := a`.
+1. `x := y` implies `x := b`.
+1. `y := aux` implies `y := a`.
+1. Thus, `x := b` and `y := a`, so the postcondition is satisfied.
+
+### Loop Invariants
+
+A *loop invariant* is a logical predicate that, if true before any single
+iteration of a loop, then is also true after the iteration of the loop. It is
+called an "invariant" because it is always true.
+
+When using induction to prove the correctness of an algorithm, the loop
+invariant is the inductive hypothesis.
+
+Consider the following psuedocode to sum the first `N` elements of a list `a`:
+```
+sum_list(a, N)
+    s := 0
+    k := 0
+    while (k < N):
+        s := s + a[k]
+        k := k + 1
+```
+
+To prove this algorithm is correct, we must show:
+
+1. The loop invariant (that at step `k`, `s = ` sum of first `k` numbers in `a`)
+   holds true; and
+1. The algorithm terminates.
+
+We want to show that, at step `k`, `s = ` sum of first `k` numbers in `a`.
+Hence, we will induct on `k`.
+
+1. At `k = 0`, we have that `s = 0`, so the algorithm is correct for `k = 0`.
+1. We will assume that the algorithm holds for some arbitrary `k`.
+1. We will now prove that the algorithm holds for `k + 1`. In the `(k + 1)`-th
+   iteration of the loop, we set `s = s + a[k + 1]`, so `s` is the sum of the
+   first `k` numbers (because, by the induction hypothesis, before the iteration
+   of the loop we have that `s` is the sum of the first `k` numbers) plus
+   `a[k + 1]`; i.e., it is the sum of the first `k + 1` numbers.
+
+Hence, the loop invariant holds for all `k`. However, we must also prove that
+the algorithm terminates. For each iteration, we have that `k := k + 1`, so
+after `N` iterations, `k = N`, and hence the loop will terminate.
+
+### Strong Induction
+
+Strong induction is just like regular induction, but instead of assuming the
+inductive hypothesis for some `k`, we assume it for all values less than or
+equal to `k`. We will use strong induction in the proof of correctness of
+mergesort.
+
+### Mergesort
+
+Consider the following pseudocode of mergesort:
+```
+mergesort(A, l, r):
+    if l < r:
+        m = floor((l + r) / 2)
+        mergesort(A, l, m)
+        mergesort(A, m + 1, r)
+        merge(A, l, m, r)
+```
+
+Note that the precondition of `merge` is that `A[l ... m]` and `A[m + 1 ... r]`
+are sorted, and the postcondition is that `A` is sorted.
+
+The precondition for this algorithm is that `A` has at least `1` element between
+the indices `l` and `r` (otherwise, this code doesn't have anything to do). The
+postcondition is that the elements between `l` and `r` are sorted.
+
+To prove the correctness of this algorithm, we must show that the postcondition
+holds. To do so, we will prove that `mergesort` can sort `n` elements (and so
+it will therefore be able to sort `n = r - l + 1` elements).
+
+The base case of `n = 1` is true because `A` is simply a one-element list (which
+is always sorted).
+
+We will let the inductive hypothesis be that mergesort correctly sorts
+`n = 1...k` elements (i.e., everything less than or equal to `k`) This is strong
+induction.
+
+To show the inductive step (`n = k + 1`) true, consider the two recursive calls
+in the function.
+
+1. For the first recursive call, we have that `mergesort` is sorting
+   `m - l + 1 = (k + 1) / 2 <= k` elements, so by the inductive hypothesis,
+   `mergesort` holds. Hence, `A[l ... m]` is sorted.
+1. For the second recursive call, we have that `mergesort` is sorting
+   `r - (m + 1) + 1 = r - m = (k + 1) / 2 <= k` elements, so by the inductive
+   hypothesis, `mergesort` holds. Hence, `A[m + 1 ... r]` is sorted.
+
+We therefore have that the precondition of `merge` is upheld, so the
+postcondition of `merge` must also be upheld. Therefore, we have that `A` is
+sorted, and so the postcondition of `mergesort` is upheld.
+
+Lastly, we must show that `mergesort` terminates. Note that for each recursive
+call, the length of the subarray between `p` and `q` decreases, so eventually it
+must reach a point where there is only one element in the array, in which case
+we reach termination.
