@@ -397,3 +397,147 @@ Lastly, we must show that `mergesort` terminates. Note that for each recursive
 call, the length of the subarray between `p` and `q` decreases, so eventually it
 must reach a point where there is only one element in the array, in which case
 we reach termination.
+
+# Data Structures
+
+## Dictionary
+
+### Description
+
+A *dictionary* is a set of `(key, value)` pairs. The keys must be comparable. A
+dictionary has the following operations:
+
+- `insert(key, value)`
+- `find(key)`
+- `delete(key)`
+
+### Implementations
+
+Here are some possible underlying data structures for the dictionary:
+
+|                      | `insert` | `find`     | `delete` |
+|----------------------|----------|------------|----------|
+| Unsorted linked list | `O(1)`   | `O(n)`     | `O(n)`   |
+| Unsorted array       | `O(1)`   | `O(n)`     | `O(n)`   |
+| Sorted linked list   | `O(n)`   | `O(n)`     | `O(n)`   |
+| Sorted array         | `O(n)`   | `O(log n)` | `O(n)`   |
+
+We will, however, use a different data structure to implement a dictionary (for
+now): a tree. In particular, a binary tree.
+
+#### Side Note: Lazy Deletion
+
+Rather than actually deleting and shifting the contents of an array, you can
+just "mark" it as deleted. This is simpler, faster, and you can do removal in
+batches, but takes up extra space and may complicate the implementation.
+
+### Better Implementations
+
+The following are some better implementations for a dictionary:
+
+1. Binary trees
+1. AVL trees (guarenteed to be balanced)
+1. B-trees (guarenteed to be balanced)
+1. Hash tables
+
+We will implement a dictionary as a binary tree where the data of each node is a
+`(key, value)`, and the left child has `key` that is less than (or equal to)
+that of the parent node, and the right child has a `key` that is greater than
+that of the parent node. Note that such an ordering must be defined because we
+require that the keys are comparable.
+
+## Trees
+
+### Terminology
+
+Here is some terminology for trees:
+
+- Root: top of tree
+- Leaves: at bottom of tree
+- Children: the nodes directly below (and attached to) another node
+- Parent: the node to which children are attached
+- Siblings: two nodes are siblings if they are children to the same parent
+- Descendants: subtree with a particular node at root; includes children,
+    children of children, etc.
+- Depth (of a node): distance to root
+- Height (of a tree): distance from root to furthest leaf
+- Branching factor: how many children each node can have (for a binary tree,
+    this is 2)
+- A *balanced* tree has height $\in O(\log n)$, where $n$ is the number of
+    nodes.
+
+### The Binary Tree
+
+Here are some facts that are true of any binary tree with height $h$:
+
+- The maximum number of leaves is $2^h$
+- The maximum number of nodes is $2^h + (2^h - 1) = 2^{h+1} - 1$
+- The minimum number of leaves is $1$
+- The maximum number of leaves is $h + 1$
+
+Here is a function to determine the height of a tree:
+
+```c
+int tree_height(Node *root) {
+    if (root == NULL) {
+        return -1;
+    } else {
+        return 1 + max(tree_height(root->left, root->right));
+    }
+}
+```
+
+### Binary Tree Traversal
+
+Suppose that we have a binary tree defined as follows:
+
+```
++
+  *
+    2
+    4
+  5
+```
+
+Then we can process $t$ either in-order, pre-order, or post-order.
+
+- In-order: `2 * 4 + 5`
+- Pre-order: `+ * 2 4 5`
+- Post-order: `2 4 * 5 +`
+
+Here is a slightly more abstract example of ordering. Consider the following
+tree:
+
+```
+A
+  B
+    D
+    E
+  C
+    F
+    G
+```
+
+Then:
+
+- In-order: `DBEAFCG`
+- Pre-order: `ABDECFG`
+- Post-order: `DEBFGCA`
+
+Note that, given an order trace, one cannot determine the structure of the
+original tree (but given a pre/post-order trace *and* an in-order trace, one can
+do so).
+
+The following code performs an in-order traversal of a tree:
+
+```c
+void in_order_traversal(Node *t) {
+    if (t != NULL) {
+        // for pre-, process here instead
+        in_order_traversal(t->left);
+        process(t->data);
+        in_order_traversal(t->right);
+        // for post-, process here instead
+    }
+}
+```
