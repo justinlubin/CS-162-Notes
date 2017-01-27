@@ -400,7 +400,7 @@ we reach termination.
 
 # Data Structures
 
-## Dictionary
+## Dictionaries
 
 ### Description
 
@@ -466,7 +466,9 @@ Here is some terminology for trees:
 - A *balanced* tree has height $\in O(\log n)$, where $n$ is the number of
     nodes.
 
-### The Binary Tree
+## Binary Trees
+
+### Description
 
 Here are some facts that are true of any binary tree with height $h$:
 
@@ -540,4 +542,143 @@ void in_order_traversal(Node *t) {
         // for post-, process here instead
     }
 }
+```
+
+## AVL Trees
+
+### Motivation
+
+For a binary treee, we have that:
+
+- Each node has less than or equal to two children
+- Operations are simple
+- Order property
+    - All keys in left subtree are smaller
+    - All keys in right subtree are larger
+    - This gives us $O(\log n)$ find --- **but only if balanced**
+
+This is what an unbalanced tree looks like:
+```
+A
+  B
+    C
+      D
+        E
+```
+It basically is a linked list, so `find`, `insert`, and `delete` are all
+$\Theta(n)$. If you wanted to build this tree (with $n$ items), it would be
+$\Theta(n^2)$. This is bad, so we want to keep the tree *balanced*.
+
+We must keep balance not just at build time, but also every time we insert or
+delete. To do this, we will need to define what constitutes a "balanced" tree.
+However, the conditions cannot be too weak (useless) or too strong (impossible).
+The sweet spot is the **AVL condition**.
+
+Here are some possible conditions, and why they are not really that good.
+
+1. Left + right subtrees of the root have the same number of nodes.
+    - Too weak because the left and right subtrees can just themselves be
+        really unbalanced.
+1. Left + right subtrees of the root have the same height.
+    - Too weak because he left and right subtrees might just both be linear
+        (i.e. look like linked lists).
+1. Left + right subtrees of **every node** have equal number of nodes.
+    - This ensures that the tree will always be perfect, but is too strong
+        because this is extremely difficult/expensive to maintain.
+1. Left + right subtrees of **every node** have equal height.
+    - Same thing as previous condition; too strong.
+
+So, what is the solution? The AVL condition:
+
+- Left + right subtrees of every node differ by at most $1$.
+
+### Example
+
+The following is a valid AVL tree:
+```
+6 (3)
+  4 (1)
+    1 (0)
+    _
+  8 (2)
+    7 (0)
+    11 (1)
+      10 (0)
+      12 (0)
+```
+The numbers in parentheses are the height of that particular node. The height
+is defined as the maximum distance to the bottom. It can recurisely be defined
+as `max(height(child1), height(child2)) + 1`; i.e., one more than the maximum
+height of the children.
+
+### Maintaining the AVL Condition
+
+There are four cases that we have to handle when updating the AVL tree to make
+sure that it is valid. Fixing invalid AVL trees is done via a technique known as
+*rotation*.
+
+Note that, in the following examples, `[x]` denotes an arbitrary (sub)tree.
+
+#### Left-Left
+```
+a (h+3)
+  b (h+2)
+    [x] (h+1; originally h)
+      *added element*
+    [y] (h)
+  [z] (h)
+```
+becomes
+```
+b (h+2)
+  [x] (h+1)
+    *added element*
+  a (h+1)
+    [y] (h)
+    [z] (h)
+```
+
+#### Right-Right
+```
+a (h+3)
+  [x] (h)
+  b (h+2)
+    [y] (h)
+    [z] (h+1; originally h)
+      *added element*
+```
+becomes
+```
+b (h+2)
+  a (h+1)
+    [x] (h)
+    [y] (h)
+  [z] (h+1)
+    *added element*
+```
+
+#### Right-Left
+This utilizes a **double rotation**, but it is helpful to just think of moving
+the problematic node to its grandparent position, then just putting everything
+else back in how it fits (which will be unique).
+```
+a (h+3)
+  [x] (h)
+  b (h+2)
+    c (h+1)
+      [u] (h; originally h-1)
+        *added element*
+      [v] (h-1)
+    [z] (h)
+```
+becomes
+```
+c (h+3)
+  a (h+2)
+    [x] (h+1)
+    [u] (h)
+      *added element*
+  b (h+1)
+    [v] (h-1)
+    [z] (h)
 ```
