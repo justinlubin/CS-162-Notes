@@ -213,7 +213,7 @@ T(n) &= 2^{n-1} + 2^{n-1} - 1 \\
 ### Description
 
 To mergesort a list, split the list into two and sort the sublists. To merge
-them back together, interleave the elements.  Interleaving / merging is $O(n)$
+them back together, interleave the elements. Interleaving / merging is $O(n)$
 and there are $O(\log n)$ splits, so mergesort is $O(n \log n)$.
 
 Mergesort is based on the trick that it is really easy to interleave two sorted
@@ -415,15 +415,16 @@ dictionary has the following operations:
 
 Here are some possible underlying data structures for the dictionary:
 
-|                      | `insert` | `find`     | `delete` |
-|----------------------|----------|------------|----------|
-| Unsorted linked list | `O(1)`   | `O(n)`     | `O(n)`   |
-| Unsorted array       | `O(1)`   | `O(n)`     | `O(n)`   |
-| Sorted linked list   | `O(n)`   | `O(n)`     | `O(n)`   |
-| Sorted array         | `O(n)`   | `O(log n)` | `O(n)`   |
+|                      | `insert`   | `find`     | `delete`     |
+|----------------------|------------|------------|--------------|
+| Unsorted linked list | `O(1)`     | `O(n)`     | `O(n)`       |
+| Unsorted array       | `O(1)`     | `O(n)`     | `O(n)`       |
+| Sorted linked list   | `O(n)`     | `O(n)`     | `O(n)`       |
+| Sorted array         | `O(n)`     | `O(log n)` | `O(n)`       |
+| Balanced tree        | `O(log n)` | `O(log n)` | `O(log n)`   |
+| "Magic array"        | `O(1)`     | `O(1)`     | `O(1)`       |
 
-We will, however, use a different data structure to implement a dictionary (for
-now): a tree. In particular, a binary tree.
+A "magic" array is a hashtable!
 
 #### Side Note: Lazy Deletion
 
@@ -535,11 +536,11 @@ The following code performs an in-order traversal of a tree:
 ```c
 void in_order_traversal(Node *t) {
     if (t != NULL) {
-        // for pre-, process here instead
+        // for pre-order, process here instead
         in_order_traversal(t->left);
         process(t->data);
         in_order_traversal(t->right);
-        // for post-, process here instead
+        // for post-order, process here instead
     }
 }
 ```
@@ -682,3 +683,82 @@ c (h+3)
     [v] (h-1)
     [z] (h)
 ```
+
+## Hashtables
+
+### Description
+
+A hashtable maps keys to indices in an array via a hashing function. Keys can be
+anything, so long as the hash function maps it to an integer.
+
+For insert, find, and delete, hashtables are really fast. However, the hashtable
+is just a random mapping between keys and indices, so there is no ordering.
+Hence, things like `findmin`, `findmax`, `predecessor`, and `successor` would
+all be $O(n)$. AVL trees would be a better choice if you need these functions.
+
+Hashtables are useful if the key-space is very large, but the actual number of
+keys that you use is small. Note that the array backing a hashtable is almost
+always much smaller than the key-space.
+
+Here are some examples of when it would be good to use a hashtable:
+
+- Compiler: all possible identifiers for a variable vs. those
+    used in a program. This is a large key-space with a small number of keys
+    actually used, so a hashtable would be useful here.
+- Database: all possible student names vs. the students in a class.
+- AI: all possible chess configurations vs. ones seen in a single game
+
+### Example Hash Function
+
+Here is a simple hash function:
+\begin{equation*}
+h(k) = k \ \% \ n,
+\end{equation*}
+where $k$ is the key and $n$ is the table size.
+
+If you have a bunch of numbers that are multiples of each other as your key,
+then you would want the table size to be prime (or just coprime to the multiple
+in question) in order to minimize collisions.
+
+### Collisions
+
+A *collision* occurs when two keys map to the same index. One way to resolve
+this is to utilize *chaining*. Chaining is when you store a linked list at each
+index of the array (instead of just the key). Then, once you hash a key, you can
+look in / append to the linked list for it. If you have a really bad hashing
+function and you chain, then your hashtable just becomes a linked list.
+
+### Load Factor
+
+When chaining, we can define $\lambda$ to be the *load factor* of a hashtable,
+which corresponds to the average number of elements in each *bucket* (index in
+the array). We have that $\lambda = k / n$, where $k$ is the number of elements
+and $n$ is the tablesize.
+
+One application of this is that we can be more precise in our analysis of
+`find`.  We have that `find` is in $O(\lambda)$ in the unsuccessful case, and
+$O(\lambda/2)$ in the successful case (so it is all really $O(\lambda)$).
+
+### Linear Probing
+
+Instead of having a linked list at each index (which takes more memory and is
+dynamically allocated), we can use a technique called *linear probing*. If there
+is a collision, then just store the key in the next available spot in the array.
+However, you have to be careful when finding and deleting. When you are looking
+for an element, you have to hash it, then do linear search until you either find
+the key or you find an empty spot. However, when deleting, you must use lazy
+deltion, otherwise you would mess up the linear probing search.
+
+This is not usually used in practice. Quadratic probing is preferred.
+
+### Quadratic Probing
+
+Quadratic probing is just like linear probing, but instead of storing the
+colliding key in the next index, you store it in the second, fourth, sixteenth
+(and so on) index away from the original index. This ensures that the indices
+are more spread out, so clusters don't arise (the goal of a hashtable is to have
+a good spread of indices).
+
+Quadratic probing avoids the dynamic allocation of memory present in the
+chaining technique, while at the same time improving upon the naive linear
+probing method.
