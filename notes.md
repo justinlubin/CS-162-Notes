@@ -744,7 +744,13 @@ $O(\lambda/2)$ in the successful case (so it is all really $O(\lambda)$).
 Instead of having a linked list at each index (which takes more memory and is
 dynamically allocated), we can use a technique called *linear probing*. If there
 is a collision, then just store the key in the next available spot in the array.
-However, you have to be careful when finding and deleting. When you are looking
+The hash function then becomes
+\begin{align*}
+h'(k) = h(k) + i,
+\end{align*}
+where $i$ is the number of times that you have tried to place the key.
+
+**However**, you must be careful when finding and deleting. When you are looking
 for an element, you have to hash it, then do linear search until you either find
 the key or you find an empty spot. However, when deleting, you must use lazy
 deltion, otherwise you would mess up the linear probing search.
@@ -753,12 +759,76 @@ This is not usually used in practice. Quadratic probing is preferred.
 
 ### Quadratic Probing
 
-Quadratic probing is just like linear probing, but instead of storing the
-colliding key in the next index, you store it in the second, fourth, sixteenth
-(and so on) index away from the original index. This ensures that the indices
-are more spread out, so clusters don't arise (the goal of a hashtable is to have
-a good spread of indices).
+Quadratic probing is just linear probing, but instead of storing the colliding
+key in the next index, you store it according to:
+\begin{align*}
+h'(k) = h(k) + i^2,
+\end{align*}
+where $i$ is the number of times that you have tried to place the key. This
+ensures that the indices are more spread out, so clusters don't arise (the goal
+of a hashtable is to have a good spread of indices). It does so by changing the
+"stride" of the probing, so that if a key is placed in what was a long series of
+probes for some other key, the hash function doesn't have to go through the
+entire series (it goes through a different one for each key).
 
 Quadratic probing avoids the dynamic allocation of memory present in the
 chaining technique, while at the same time improving upon the naive linear
 probing method.
+
+There are, however, some issues with quadatic probing. If you are unlucky, you
+may get a *cycle*, where the hashing function keeps jumping on the same (full)
+indices over and over again, never finding an open slot (even if one exists). To
+combat this, you can make the table size prime and take $\lambda < 1/2$. There
+is a proof that if these conditions are upheld, then quadratic probing will find
+an empty slot in $n/2$ probes, where $n$ is the size of the table (this is not a
+very good bound, but at least it's something).
+
+### Double Hashing
+
+Double hashing is like linear probing, but with an extra hash function that
+adjusts the stride of the probing. We let
+\begin{align*}
+h'(k) = h(k) + i * g(k),
+\end{align*}
+where $h$ and $k$ are hashing functions, and $i$ is the number of times that
+you have tried to place the key. The one caveat is that it must be the case that
+$g(k) \not = 0$ for any key $k$, otherwise the probing would never advance.
+
+One good implementation of double hashing defines $h$ and $g$ as:
+\begin{align*}
+h(k) &= k \ \% \ p \\
+g(k) &= q - (k \ \% \ q),
+\end{align*}
+where $p, q$ are prime and $2<q<p$. These two functions result in no cycles for
+double hashing, which is really nice (proof not given).
+
+### Universal Hash Functions
+
+Define a hashing function by:
+\begin{equation*}
+h(k) = ((ak + b) \ \% \ p) \ \% \ n,
+\end{equation*}
+where $n$ is the table size, $p$ is a prime such that $p > m$, and $a$ and $b$
+are random integers (fixed for a particular function, i.e. $h$ is referentially
+transparent).
+
+Because $h$ has a couple parameters, we can easily change it if we want to, but
+then we will have to rehash the table. This is a very expensive process, but can
+be useful; for example, if we detected that the number of collisions is greater
+than some threshold, we can dynamically change the hash function, double the
+table size (for good measure), and then rehash the table. We combine the
+operations of changing the hash function and the table size, because we have to
+rehash each entry after doing one of these operations, so it makes sense to
+combine it all in one so that rehashing only has to occur once.
+
+### Perfect Hash Functions
+
+Perfect hashing must be done statically (no one knows how to do it dynamically).
+To hash $n$ keys perfectly, randomly generate some universal hash functions with table size $n^2$ until there are no collisions (with $n$ keys and a table size of $n^2$, the probability of a collision is less than $1/2$, so it is more likely than not that a random universal hash function will work after a couple tries).
+
+Unfortunately, $n^2$ is not that good. To improve this, we can make take a table
+with $O(n)$ size, use a universal hash function, and for each collision,
+generate another hash table that is hashed perfectly. Each of these smaller hash
+tables will only have $m$ keys (where $m$ is the number of collisions), so
+hashing perfectly will only take $m^2$ slots. Note that $m$ will (hopefully) be
+small, so this is better than $n^2$ slots.
