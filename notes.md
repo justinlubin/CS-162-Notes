@@ -12,14 +12,14 @@ geometry: margin=1.5in
 
 ### Definition
 
-We have that a function $f \in O(g(n))$ if and only if there exists constants
-$c$ and $n_0$ such that $f(n) \leq c g(n)$ for all $n \geq n_0$.
+We have that a function $f(n) \in O(g(n))$ if and only if there exists constants
+$c$ and $n_0$ such that $f(n) \leq c \cdot g(n)$ for all $n \geq n_0$.
 
-We have that a function $f \in \Omega(g(n))$ if and only if there exists
-constants $c$ and $n_0$ such that $f(n) \leq c g(n)$ for all $n \leq n_0$.
+We have that a function $f(n) \in \Omega(g(n))$ if and only if there exists
+constants $c$ and $n_0$ such that $f(n) \leq c \cdot g(n)$ for all $n \leq n_0$.
 
-We have that a function $f \in \Theta(g(n))$ if and only if $f \in O(g(n))$
-and $f \in \Omega(g(n))$.
+We have that a function $f(n) \in \Theta(g(n))$ if and only if $f(n) \in
+O(g(n))$ and $f \in \Omega(g(n))$.
 
 This notation can be used to analyze the best-case, average-case, and
 worse-case efficiency of an algorithm, but this class typically concerns the
@@ -398,7 +398,7 @@ call, the length of the subarray between `p` and `q` decreases, so eventually it
 must reach a point where there is only one element in the array, in which case
 we reach termination.
 
-# Data Structures
+# Data Structures I
 
 ## Dictionaries
 
@@ -832,3 +832,72 @@ generate another hash table that is hashed perfectly. Each of these smaller hash
 tables will only have $m$ keys (where $m$ is the number of collisions), so
 hashing perfectly will only take $m^2$ slots. Note that $m$ will (hopefully) be
 small, so this is better than $n^2$ slots.
+
+## Union-Find Data Structure
+
+### Mathematical Definitions
+
+A *set* is a collection of elements with no repeated elements. Two sets are said
+to be disjoint if they have no elements in common. For example, $\{1, 2, 3\}$
+and $\{4, 5, 6\}$ are disjoint, as are $\{a, b, c\}$ and $\{t, u, x \}$.
+
+A *partition* of a set $S$ is a set of sets $\{S_1, S_2, \dots, S_n \}$ with
+each $S_i \subseteq S$ such that every element of $S$ is in **exactly one**
+$S_i$.
+
+The *Cartesian product* $A \times B$ of two sets $A, B$ is the set of all pairs
+where the first element in the pair is from $A$ and the second element is from
+$B$. In particular, for any set $S$, we have that $S \times S$ is the set of all
+pairs of elements in $S$.
+
+A *binary relation* $R$ on some set $S$ is any subset of $S\times S$. For
+example, let $S$ denote the people in a room. Some binary relations could be the
+people sitting next to each other, where the first element of the pair is
+sitting to the right of the second element.
+
+An *equivalence relation* is a binary relation which is *reflexive*,
+*symmetric*, and *transitive*.
+
+- Reflexive: $x$ relates to $x$ for all $x \in S$.
+- Symmetric: if $a$ relates to $b$, then $b$ relates to $a$ for all
+    $a, b \in S$.
+- Transitive: if $a$ relates to $b$ and $b$ relates to $c$, then $a$ relates to
+    $c$ for all $a, b, c \in S$.
+
+Equivalence relations create a partition of a set. Furthermore, every partition
+of a set gives you an equivalence relation (let the relation be "Are these two
+elements in the same partition?").
+
+### The Union-Find Algorithm
+
+The union-find algorithm keeps track of a set of elements partitioned into a
+number of disjoint subsets. It first partitions the set into a bunch of
+one-element sets, then unions all the sets that are related to each other to
+form more useful sets.
+
+Here are some uses of this:
+
+- Road connectivity
+- Connected components of social network graph
+- Connected components of an image
+- Type inference in programming languages (yassssssssss)
+
+Union-find is a much more specialized data structure than, for example, AVL
+trees, but it is still useful nonetheless.
+
+### Union-Find Operations
+
+Given an unchanging set $S$:
+
+- `create()`
+    - Generate initial partition of a set where each element gets their own
+        subset (typically)
+    - Give each subset a "name", usually by choosing a "representative element"
+- `find(e)`
+    - Take element $e$ of $S$ and returns the "name" of the subset containing
+        $e$.
+- `union`
+    - Take two subsets and (permanently) make a larger subset, then choose a new
+        name for this new subset
+    - From this, we get a different partition of the set $S$ with one fewer set
+    - This affects future `find` operations
