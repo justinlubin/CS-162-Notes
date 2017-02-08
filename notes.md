@@ -882,6 +882,8 @@ Here are some uses of this:
 - Connected components of an image
 - Type inference in programming languages (yassssssssss)
 
+In general, connected components are the most useful application of union-find.
+
 Union-find is a much more specialized data structure than, for example, AVL
 trees, but it is still useful nonetheless.
 
@@ -901,3 +903,125 @@ Given an unchanging set $S$:
         name for this new subset
     - From this, we get a different partition of the set $S$ with one fewer set
     - This affects future `find` operations
+
+### A Cute Application of Union-Find
+
+We can create a maze-building application with union find! A naive way to make a
+maze would be to simply delete random edges. However, this is bad because it can
+create cycles in the maze, which is undesirable.
+
+A more sophisticated algorithm would be to randomly remove edges, but only if
+doing so does not introduce a cycle. We can do this with union-find! To
+implement this using union-find, give each cell in the maze a number. Define
+an "edge" between adjacent cells $x$ and $y$ to be the pair $(x, y)$.
+
+we must now partition the cells into disjoint sets, such that if a cell $x$ is
+in a subset with a cell $y$, then $ x $ is connected to $y$. (Initially, each
+cell is in its own subset.) If removing an edge would connect two subsets, then
+remove the edge and union the subsets. Otherwise, leave the edge (because this
+would actually introduce a cycle; i.e. connect a cell to another cell in its own
+subset).
+
+More precisely:
+
+- Let $P$ be a partition of the cells
+- Let $E$ be the set of edges not yet processed
+- Let $M$ be the set of edges that are kept in the maze
+
+```
+while P has more than one subset:
+    pick a random edge (x, y) to remove from E
+    u = find(x)
+    v = find(y)
+    if u == v:
+        add (x, y) to M // mark (x, y) as "don't remove"
+    else:
+        union(u, v)
+    remove (x, y) from E
+add remaining edges of E to M
+```
+
+This is a unique way of using union-find, because normally when you use
+union-find, you simply want to grow the connected components.
+
+## Up-Tree
+
+An up-tree is a tree that only keeps track of what is above it. We start with a
+"forest" of trees, where each tree is just one node. When we want to union two
+elements, we choose one of the elements to be the parent of the other, and
+connected the child going to the parent (but not the other way around). With
+this schema, we have that the root of the up-tree is the representative element
+of the set, so to find what set a node is in, simply follow the tree up that the
+node is in.
+
+The simplest implementation of an up-tree is just an array. This will work if
+each of the nodes are contiguous numbers (otherwise, there will need to be some
+sort of translation process, perhaps using a hashtable or a dictionary).
+
+So, if the set elements are contiguous numbers $[1...n]$, we will use an array
+$A$ of length $n$, initially filled with zeros, where a zero in index $i$ means
+that node $i$ has no parent. This makes sense because initially no node has a
+parent. If you want to make node $p$ a parent of node $c$, simply set $A[c] =
+p$.
+
+Then `find` will look like this:
+
+```
+find(x):
+    lookup x in the array
+    follow parent until 0 // until the root
+    return root // root is the representative element of the set
+```
+
+Similar to AVL trees, we want to make sure that the up-tree actually looks like
+a tree, and not a linked list. Therefore, when implementing `union` we must be
+careful to make sure the tree stays somewhat balanced.
+
+One interesting thing to note is that the *in-degree* of an up-tree is not
+limited at all. That is to say, there can be arbitrarily many nodes pointing to
+a parent node, and in fact this is more efficient because there are less parents
+to traverse. This is in contrast to normal downward trees, where more children
+equates to more branching and less efficiency.
+
+Here is what `union` will look like:
+
+```
+union(u, v):
+    set A[u] = v or A[v] = u // you have a choice
+```
+
+So what should our choice be? There are two key optimizations that we can
+implement to ensure that $A$ stays tree-like.
+
+1. Union by size; connect smaller tree to larger tree (keeps traversal lengths
+   down for the larger tree). This ensures that the tree is approximately
+   balanced, so `find` $\in O(\log n)$.
+1. Path compression; connect a node directly to the root during each `find`.
+   This actually makes union-find $O(\log^* n)$ (iterated logarithm). This is
+   basically constant.
+
+To implementing union by size with an array, we can keep track of the "weight"
+(size) of each root in the array. This can be done in an additional `weight`
+array, or you can simply keep the value `-weight` instead of zero in the root;
+the negative number signals that it is not a pointer to a parent, and the
+magnitude is the weight. With this, we have that `union` $\in O(1)$.
+
+Now we shall consider the Big-O complexity of `find`. First note that, if we
+union by size, an up-tree with size $h$ will have at least $2^h$ nodes.  Here is
+a proof by induction:
+
+- **Base case ($h=0$)**. Because $h=0$, the tree must have only one node. We have
+    that $2^h = 2^0 = 1$, and so the tree has at least $2^h$ nodes.
+- **Inductive hypothesis**. Assume that an up-tree with size $h$ has at least $2^h$
+    nodes for some $h \in \mathbb{N}$.
+- **Inductive case**. We will consider a tree $T$ with height $h+1$. We know
+    that $T$ must be the union of two smaller subtrees ($T_1$ and $T_2$), each
+    of height $h$. By the inductive hypothesis, both $T_1$ and $T_2$ have
+    at least $2^h$ nodes. Note that the number of nodes in $T$ is equal to the
+    sum of the number of nodes in $T_1$ and $T_2$, so the number of nodes in $T$
+    is at least $2^h + 2^h = 2^{h+1}$. Therefore, an up-tree with size $h+1$ has
+    at least $2^{h+1}$ nodes.
+
+Thus, by the principle of induction, the proposition holds for all $h \in
+\mathbb{N}$. With this, we know that `find` $\in O(\log n)$, because we know
+that the tree will never grow by more than a factor of two.
