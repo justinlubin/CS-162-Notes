@@ -944,7 +944,7 @@ add remaining edges of E to M
 This is a unique way of using union-find, because normally when you use
 union-find, you simply want to grow the connected components.
 
-## Up-Tree
+### Up-Tree
 
 An up-tree is a tree that only keeps track of what is above it. We start with a
 "forest" of trees, where each tree is just one node. When we want to union two
@@ -998,7 +998,7 @@ implement to ensure that $A$ stays tree-like.
    balanced, so `find` $\in O(\log n)$.
 1. Path compression; connect a node directly to the root during each `find`.
    This actually makes union-find $O(\log^* n)$ (iterated logarithm). This is
-   basically constant.
+   basically constant because it grows *extremely* slowly!
 
 To implementing union by size with an array, we can keep track of the "weight"
 (size) of each root in the array. This can be done in an additional `weight`
@@ -1025,3 +1025,84 @@ a proof by induction:
 Thus, by the principle of induction, the proposition holds for all $h \in
 \mathbb{N}$. With this, we know that `find` $\in O(\log n)$, because we know
 that the tree will never grow by more than a factor of two.
+
+## Priority Queue
+
+A *priority queue* holds comparable data (data with an ordering) and keeps
+track of the minimum element. The minimum element is said to have the highest
+*priority*; thus, the priority queue keeps track of the element with the highest
+priority.
+
+### Binary Min-Heap
+
+The most common implementation of this data structure is a *binary min-heap*,
+also known as a *binary heap*. A min-heap is a tree consisting only of nodes
+whose children are larger than it (a max-heap would be a tree consisting only of
+nodes whose children are smaller than it). Thus, in a min-heap tree, the root of
+the tree is the smallest element.
+
+A binary heap has three operations: `insert`, `delete_min`, and `is_empty`.
+
+For `delete_min`, do the following steps:
+
+1. Remove the root node
+1. Move the rightmost node in the last row to the root of the tree
+1. "Percolate down"
+
+To percolate, compare the new root with each of its children, and swap it with
+the one with higher priority. Propogate this downward until the node that is
+being percolated reaches the bottom, or has higher priority than both its
+children.
+
+Thus, `delete` $\in O(\log n)$ because it will have to percolate through at
+most $\log  n$ nodes in the tree (because a balanced tree has height $\log n$).
+
+For `insert`, do the following steps:
+
+1. Put the node in the bottmo right of the three
+1. "Percolate up" (do the swapping thing described in the previous paragraph but
+     upward)
+
+Thus, `insert` $\in O(\log n)$ because it will have to percolate through at
+most $\log  n$ nodes in the tree (because a balanced tree has height $\log n$).
+
+To implement a binary-min heap, an array works nicely because we are dealing
+with perfect binary trees.
+
+### Array Representation of Binary Trees
+
+Say you have the following binary tree:
+```
+A
+  B
+    D
+      H
+      I
+    E
+      J
+      K
+  C
+    F
+      L
+    G
+```
+This is a perfect binary tree. You can represent it in an array as follows:
+```
+0 1 2 3 4 5 6 7 8 9 10 11 12
+  A B C D E F G H I J  K  L
+```
+
+Then, from node $i$...
+
+- To get the left child, go to index $i * 2 = i << 1$
+- To get the right child, go to index $i * 2 + 1 = i << 1 + 1$
+- To get the parent, go to index $ i / 2 = i >> 2$
+
+This is really fast because multiplication and division by two can be computed
+with left and right bit shifts, which are really fast.
+
+### Fast Way to Build Heap
+
+If you wanted to insert $n$ items, it would normally be $O(n \log n)$, but
+*Floyd's Method* makes it $O(n)$. In Floyd's Method, you put the leaves in the
+binary tree array in any order, then percolate row-by-row.
