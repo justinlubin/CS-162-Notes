@@ -1059,7 +1059,7 @@ most $\log  n$ nodes in the tree (because a balanced tree has height $\log n$).
 
 For `insert`, do the following steps:
 
-1. Put the node in the bottmo right of the three
+1. Put the node in the bottom right of the three
 1. "Percolate up" (do the swapping thing described in the previous paragraph but
      upward)
 
@@ -1106,3 +1106,97 @@ with left and right bit shifts, which are really fast.
 If you wanted to insert $n$ items, it would normally be $O(n \log n)$, but
 *Floyd's Method* makes it $O(n)$. In Floyd's Method, you put the leaves in the
 binary tree array in any order, then percolate row-by-row.
+
+## Graphs
+
+A *graph* is an abstraction that represents relationships between objects.
+
+### Undirected Graphs
+
+An undirected graph $G$ consists of a set of *vertices* (also known as *nodes*)
+and a set of *edges*, denoted $G=(V,E)$. Here are some details about the
+components of an undirected graph:
+
+- $V$: set of vertices $\{v_1, \cdots, v_n\}$ with $|V| = n$
+- $E$: set of edges $\{e_1, \cdots, e_m\}$ with $|E| = m$
+    - For each $i \in [m]$, we have that $e_i$ is an *unordered* pair of
+        vertices (endpoints). We can denote this as $e_i = (v_j, v_k)$.
+- We have that $0 \leq m \leq {n \choose 2}$, so $m\in O(n^2)$
+
+Here is some terminology for an undirected graph:
+
+- The *degree* of a vertex is the number of edges that are connected to it.
+- A *path* is a sequence of vertices where each vertex is connected with the next
+    by an edge.
+- A *simple path* is a path with no vertices.
+- The *path length* of a path is the number of **edges** (not vertices) in a path.
+- A *cycle* is a path with the same starting and ending vertices.
+- The  *cycle length* of a cycle is the number of edges in a cycle.
+- A *self-loop* is when a vertex is connected to itself via an edge.
+- Two edges are said to be *parallel* if they both form the same connection
+    between two vertices (so one is essentially redundant)
+- A graph is said to be *dense* if $m \in \Omega(n^2)$ (thus implying that
+    $m\in \Theta(n^2)$)
+- A graph is *sparse* if $m \in O(n)$
+
+### Directed Graphs (Digraph)
+
+Most of the terminology is the same between an undirected and a directed graph,
+but now edges are **ordered** pairs of vertices; i.e., there is a starting point
+and an ending point.
+
+We also now have that $0 \leq m \leq n^2$, so $m \in O(n^2)$ (same as before).
+
+Additionally, instead of each vertex having a degree, they have an *in-degree*
+(the number of in-bound edges) and an *out-degree* (the number of out-bound
+edges).
+
+### Weighted Graphs
+
+- A *weighted graph* is a graph where each edge also has a *cost* (or *weight*).
+- The *path cost* of a path is the sum of the costs of the edges in the path.
+
+### Connectivity and Completeness
+
+#### Undirected Graphs
+
+- An undirected graph $G$ is said to be *connected* if, for all pairs of
+    vertices $(u, v)$ there exists a **path** from $u$ to $v$.
+- An undirected graph $G$ is said to be *complete* if, for all pairs of
+    vertices $(u, v)$ there exists a **edge** from $u$ to $v$.
+
+#### Directed Graphs
+
+- A directed graph $G$ is said to be *strongly connected* if, for all pairs of
+    vertices $(u, v)$ there exists a **path** from $u$ to $v$.
+- A directed graph $G$ is said to be *weakly connected* if, for all pairs of
+    vertices $(u, v)$ there exists a **path** from $u$ to $v$ **if we ignore
+    directionality**.
+- A directed graph $G$ is said to be *complete* (or *fully connected*) if, for
+    all pairs of vertices $(u, v)$ there exists a **path** from $u$ to $v$.
+
+### Trees
+
+- A *tree* is an undirected, acyclic, connected graph.
+- A *forest* is the union of trees. It is a tree that does not have to be
+    connected.
+- A *rooted tree* is a tree with a specified root node. It does not have to be
+    undirected.
+
+### Directed Acyclic Graph (DAG)
+
+A *directed ayclic graph* is a digraph with no directed cycles. It is similar to
+a tree, but may have directed cycles (so long as they are not also undirected
+cycles).
+
+### Representations of a Graph
+
+Here are a few common representations of a graph:
+
+- **Edge set/list**: a set/list of edges (as suggested by the mathematical
+    definition of a graph)
+- **Adjacency matrix**: a 2D array of booleans indicating whether or not two
+    vertices are connected
+    - Note that undirected graphs will be symmetric
+- **Adjacency list**: a 1D array where each cell represents a vertex and points
+    to a linked list of the vertices that it is connected to
