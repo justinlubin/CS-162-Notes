@@ -1107,7 +1107,9 @@ If you wanted to insert $n$ items, it would normally be $O(n \log n)$, but
 *Floyd's Method* makes it $O(n)$. In Floyd's Method, you put the leaves in the
 binary tree array in any order, then percolate row-by-row.
 
-## Graphs
+# Graphs
+
+## Introduction to Graphs
 
 A *graph* is an abstraction that represents relationships between objects.
 
@@ -1200,3 +1202,133 @@ Here are a few common representations of a graph:
     - Note that undirected graphs will be symmetric
 - **Adjacency list**: a 1D array where each cell represents a vertex and points
     to a linked list of the vertices that it is connected to
+
+## Topological Sort
+
+### Definition
+
+A *topological sort* works on a DAG $G=(V,E)$; it outputs vertices in order such
+that no vertex appears before another that has an edge to it.
+
+*Why must a topological sort only work on DAGs?* If the graph is not cyclic, then
+it is impossible to sort, and if its not directed, then there is no ordering.
+
+*Is there always one unique topoligcal sort for a DAG?* No, consider the following
+tree:
+```
+A
+  B
+  C
+```
+Both `ABC` and `ACB` are valid topological sorts.
+
+More formally, a DAG gives you a partial ordering, and a topological sort gives you a
+total order that is consistent with the partial order of a DAG.
+
+### Examples
+
+Here are some examples when you might want to use a topological sort on a DAG:
+
+- Compiling code
+- Course order to graduate
+- Makefile (determining order to compile files)
+
+In general, you may want to use a topological sort whenever you have a
+dependency graph of some sort.
+
+### Implementation
+
+Here is a naive implementation of a topological sort:
+
+```
+NaiveTopologicalSort(DAG):
+    // you could do the following by adding an in-degree field to the vertex
+    // (more common), or you could use another structure (like an array)
+    label each vertex in DAG with its in-degree
+
+    while there are vertices in DAG to output:
+        // because the following choice is arbitrary, that is why topological
+        // sort is not unique
+        choose a vertex v with in-degree = 0 from DAG
+
+        output v
+
+        // "conceptually" remove v from DAG:
+        for each vertex u adjacent to v:
+            decrement in-degree of u
+```
+
+Let's take a look at the runtime of this topological sort:
+
+When analyzing graph algorithms on a graph $G=(V, E)$, it is common to write the
+Big-O notation in terms of $|V|$ and $|E|$.
+
+- The initialization portion of topological sort takes $O(|V|+|E|)$ time. The
+    part where $|V|$ is added is more of an edge case; it accounts for the case
+    in which the number of vertices is greater than the number of edges (like if
+    there are a lot of singletons)
+- Finding a new vertex with `in-degree = 0` takes $O(|V|)$ times (look through
+    all vertices to find one)
+- Total number of times a new vertex need to be found is $O(|V|)$, so total
+    finding process is $O(|V|^2)$
+- Thus, total running time is $O(|V|+|E|+|V|^2) = O(|V^2| +|E|)$. However, for a
+    DAG, it is always true that $|E|<|V|^2$, so we have that this topological
+    sort is in $O(|V^2|)$.
+
+### Better Implementation
+
+This is a better implementation of a topological sort using a queue:
+
+```
+BetterTopologicalSort(DAG):
+    label each vertex with an in-degree
+    enqueue all the zero-degree nodes
+    while the queue is not empty:
+        v = dequeue()
+        output v
+        remove(v)
+        for each u adjacent to v:
+            decrement in-degree of u
+            if new degree of u = 0:
+                enqueue u
+```
+
+Let's take a look at the runtime of this new topological sort:
+
+- Initialization: $O(|V|+|E|)$. This is the same as before.
+- Sum of all enqueues and dequeues: $O(|V|)$. Every vertex gets enqueued exactly
+    once and dequeued exactly once.
+- Sum of all decrements: $O(|E|)$. Each in-degree corresponds to an edge, so we
+    must decrement exactly as many times as there are edges.
+- Total: $O(|V|+|E|)$. Note that now $|V|$ may not dominate $|E|$, so we need to
+    include both.
+
+## Graph Traversal
+
+Given a start node $v$, a *graph traversal* will find all reachable nodes from
+*v*; i.e., the nodes for which there exists a path from $v$. Note that graph
+traversals work on all graphs, not just DAGs.
+
+To do so, we will just keep following nodes. We will also "mark" visited nodes
+so that we process each node only once, and (more importantly) so that the
+algorithm will actually know when to terminate.
+
+Let's take a look at the pseudocode:
+
+```
+TraverseGraph(startNode):
+    set pending = empty set
+    pending.add(startNode)
+    while pending is not empty:
+        next = pending.remove()
+        for each node u adjacent to next:
+            if u is not marked:
+                mark u
+                pending.add(u)
+```
+
+And also the running time! We will assume that ading and removing to a set are
+$O(1)$. Then:
+
+- The entire traversal is $O(|E|)$ because you have to check (at most) *all* the
+    edges.
