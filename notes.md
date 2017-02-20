@@ -824,7 +824,11 @@ combine it all in one so that rehashing only has to occur once.
 ### Perfect Hash Functions
 
 Perfect hashing must be done statically (no one knows how to do it dynamically).
-To hash $n$ keys perfectly, randomly generate some universal hash functions with table size $n^2$ until there are no collisions (with $n$ keys and a table size of $n^2$, the probability of a collision is less than $1/2$, so it is more likely than not that a random universal hash function will work after a couple tries).
+To hash $n$ keys perfectly, randomly generate some universal hash functions with
+table size $n^2$ until there are no collisions (with $n$ keys and a table size
+of $n^2$, the probability of a collision is less than $1/2$, so it is more
+likely than not that a random universal hash function will work after a couple
+tries).
 
 Unfortunately, $n^2$ is not that good. To improve this, we can make take a table
 with $O(n)$ size, use a universal hash function, and for each collision,
@@ -1305,6 +1309,8 @@ Let's take a look at the runtime of this new topological sort:
 
 ## Graph Traversal
 
+### Introduction
+
 Given a start node $v$, a *graph traversal* will find all reachable nodes from
 *v*; i.e., the nodes for which there exists a path from $v$. Note that graph
 traversals work on all graphs, not just DAGs.
@@ -1313,7 +1319,7 @@ To do so, we will just keep following nodes. We will also "mark" visited nodes
 so that we process each node only once, and (more importantly) so that the
 algorithm will actually know when to terminate.
 
-Let's take a look at the pseudocode:
+Let's take a look at the pseudocode for a general traversal:
 
 ```
 TraverseGraph(startNode):
@@ -1327,8 +1333,148 @@ TraverseGraph(startNode):
                 pending.add(u)
 ```
 
-And also the running time! We will assume that ading and removing to a set are
-$O(1)$. Then:
+And also the running time! We will assume that adding and removing to a set are
+$O(1)$. Then, the entire traversal is $O(|E|)$ because you have to check (at
+most) *all* the edges.
 
-- The entire traversal is $O(|E|)$ because you have to check (at most) *all* the
-    edges.
+Now let's look at some more specific traversals.
+
+### Depth-First Search
+
+A depth-first search goes as deep as possible, then backtracks. Here's the
+pseudocode:
+
+```
+DFS(startNode):
+    mark and process startNode
+    for each node u adjacent to startNode:
+        if u is not marked:
+            DFS(u)
+```
+
+Let's say you have a tree like this:
+```
+A
+  B
+    D
+    E
+  C
+    F
+      G
+      H
+```
+
+Then a depth-first seach might go in the order `ABDECFGH` (this would be called
+pre-order).
+
+Here is another implementation of depth-first search that uses an explicit stack
+rather than recursion:
+
+```
+DFS2(startNode):
+    stack_push(startNode)
+    mark startNode as visited
+    while stack_not_empty():
+        next = stack_pop()
+        for each node u adjacent to next:
+            if u is not marked:
+                mark u
+                stack_push(u)
+```
+
+However, this implementation is more of a "last-in first-out" implementation,
+and so it goes right-to-left (post-order). Thus, it would process the above tree
+as `ACFHGBED`.
+
+### Breadth-First Search
+
+A breadth-first search advances in a "frontier"; i.e., level by level of the
+DAG. Here's the pseudocode (it requires a queue):
+
+```
+BFS(startNode):
+    enqueue(startNode)
+    mark startNode as visited
+    while queue_not_empty():
+        next = dequeue()
+        for each node u adjacent to next:
+            if u is not marked:
+                mark u
+                enqueue(u)
+```
+
+Basically, it is exactly the same the second implementation of depth-first
+search, but every time there is a stack operation it's a queue operation.
+
+This breadth-first search would process the above tree as `ABCDEFGH`.
+
+### Comparison of Depth-First and Breadth-First Searches
+
+- Depth-first search uses less memory
+    - If $p$ is the length of the longest path and $d$ is the highest
+        out-degree, then the size of the DFS stack is less than $d*p$ elements.
+    - On the other hand, the breadth-first search can take order $O(|V|)$ space
+        for the queue.
+
+### Iterative Depth-First Search
+
+Pick some number $k$; then, do a depth-first search that is $k$ levels deep. If
+this fails, try again with a larger $k$. THis is a compromise between DFS and
+BFS, it takes the order $O(d*p)$ space of DFS, but also kind of acts like a
+"frontier" as in BFS. If you don't find the element you are looking for in the
+first iteration of the algorithm, you have to re-traverse everything that you
+already did but with a bigger $k$, so it can be inefficient.
+
+### Saving the Shortest Path
+
+So far, these searches have answered the question "is there a path?", but
+sometimes you need to actually store the path to the node. To do so, you can
+keep a backward pointer in each of the nodes that you set as you traverse them,
+then when the search finds a particular node, you have a path back to the root.
+
+Alternatively, if you only want the path length, you can just keep an integer
+that stores how far away you currently are from the root as the search algorithm
+progresses, then return this integer when you are done.
+
+## Minimum Spanning Tree
+
+### Definition
+
+Given an unweighted graph $G=(V,E)$, a spanning tree $G'=(V',E')$ is a
+**connected** graph such that $E'\subseteq E$ and $|E'|=V-1$. For a weighted
+graph, this definition holds, but it is also required that the sum of the
+weight of the edges is minimized.
+
+### Algorithm Overview
+
+*Kruskal's algorithm* is a greedy algorithm that uses a priority queue with
+union-find to find a minimum spanning tree.
+
+*Prim's algorithm* is related to Dijsktra's algorithm (both are based on
+expanding cloud of known vertices and use priority queues), but cannot handle
+weighted graphs as Dijsktra's algorithm can.
+
+### Kruskal's Algorithm
+
+The idea of Kruskal's algorithm is to grow a forest out of edges that do not
+create a cycle. Then, pick an edge with the smallest weight. As such, Kruskal's
+algorithm is called an *edge-based* greedy algorithm. It works on a weighted
+graph, so it tries to minimize the sum of the weights of the edges.
+
+Here is some pseudocode:
+```
+Kruskal(G):
+    // It is better to use a priority queue and just keep track of the minimum
+    // element
+    sort the edges in G by weight
+
+    // Union-Find
+    put each node in its own subset
+
+    while output < |V| - 1:
+        consider the next smallest edge (u, v)
+        if find(v) and find(u) are different:
+            output(u, v)
+        else:
+            union(find(u), find(v))
+```
