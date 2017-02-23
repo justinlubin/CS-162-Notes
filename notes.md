@@ -1445,16 +1445,16 @@ Given an unweighted graph $G=(V,E)$, a spanning tree $G'=(V',E')$ is a
 graph, this definition holds, but it is also required that the sum of the
 weight of the edges is minimized.
 
-### Algorithm Overview
-
-*Kruskal's algorithm* is a greedy algorithm that uses a priority queue with
-union-find to find a minimum spanning tree.
+### Algorithm Overviews
 
 *Prim's algorithm* is related to Dijsktra's algorithm (both are based on
 expanding cloud of known vertices and use priority queues), but cannot handle
 weighted graphs as Dijsktra's algorithm can.
 
 ### Kruskal's Algorithm
+
+*Kruskal's algorithm* is a greedy algorithm that uses a priority queue with
+union-find to find a minimum spanning tree.
 
 The idea of Kruskal's algorithm is to grow a forest out of edges that do not
 create a cycle. Then, pick an edge with the smallest weight. As such, Kruskal's
@@ -1471,10 +1471,61 @@ Kruskal(G):
     // Union-Find
     put each node in its own subset
 
-    while output < |V| - 1:
+    while output size < |V| - 1:
         consider the next smallest edge (u, v)
-        if find(v) and find(u) are different:
+        if find(v) != find(u):
             output(u, v)
-        else:
             union(find(u), find(v))
+```
+
+Here is an analysis of Kruskal's algorithm (no priority queue):
+
+- Sort edges: $O(|E|\log|E|)$
+- Iterate through edges and do union-find: $O(|E|\log^* |E|) \approx O(|E|)$
+
+Here is an analysis with using a priority queue:
+
+- Use priority queue for keeping track of minimum edges: $O(|E|)$
+- Iterate for each edge and delete minimum: $O(|E|\log|E|)$
+    - Iterating through edges: $O(|E|)$
+    - Delete minimum: $O(\log|E|)$
+
+Although both of these algorithms are $O(|E|\log|E|)$, the second one is usually
+used because the "expensive" part is in the loop where we may terminate early,
+whereas we always have to do the entirety of the expensive part for the first
+one.
+
+### Dijsktra's Algorithm
+
+*Dijsktra's algorithm* gives you the shortest path to a particular node. In
+fact, it actually gives you the shortest path to *all* the nodes, because it
+relies on the fact that to get to a particular node, you need to find the
+shortest path to each of the nodes before it.
+
+Here is some info about the algorithm:
+
+- Grow a set of nodes whose shortest distance has been computed
+- Nodes not in set have a "best distance so far"
+- Use a pariority queue for efficiency
+- Greedy algorithm (ocally optimized choices)
+    - But it turns out that it is actually also *globally* optimal (not usually
+        the case for greedy algorithms, but it is for this one)
+
+And here's the pseudocode:
+
+```
+Dijkstra(G, sourceNode):
+    for each node v in G:
+        v.cost = infinity
+        v.known = false
+
+    sourceNode.cost = 0
+
+    while there exist unknown nodes:
+        select unknown node v with lowest cost
+        mark v known
+        for each edge (v, u) with weight w:
+            cost1 = v.cost + w // possibly new cost
+            cost2 = u.cost     // current best cost
+            if (cost1 < cost2)
 ```
