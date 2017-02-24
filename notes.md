@@ -920,7 +920,7 @@ implement this using union-find, give each cell in the maze a number. Define
 an "edge" between adjacent cells $x$ and $y$ to be the pair $(x, y)$.
 
 we must now partition the cells into disjoint sets, such that if a cell $x$ is
-in a subset with a cell $y$, then $ x $ is connected to $y$. (Initially, each
+in a subset with a cell $y$, then $x$ is connected to $y$. (Initially, each
 cell is in its own subset.) If removing an edge would connect two subsets, then
 remove the edge and union the subsets. Otherwise, leave the edge (because this
 would actually introduce a cycle; i.e. connect a cell to another cell in its own
@@ -1100,7 +1100,7 @@ Then, from node $i$...
 
 - To get the left child, go to index $i * 2 = i << 1$
 - To get the right child, go to index $i * 2 + 1 = i << 1 + 1$
-- To get the parent, go to index $ i / 2 = i >> 2$
+- To get the parent, go to index $i / 2 = i >> 2$
 
 This is really fast because multiplication and division by two can be computed
 with left and right bit shifts, which are really fast.
