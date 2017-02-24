@@ -1514,18 +1514,93 @@ Here is some info about the algorithm:
 And here's the pseudocode:
 
 ```
-Dijkstra(G, sourceNode):
-    for each node v in G:
+Dijkstra(V, E, vStart):
+    for v in V:
         v.cost = infinity
         v.known = false
 
-    sourceNode.cost = 0
+    vStart.cost = 0
 
     while there exist unknown nodes:
-        select unknown node v with lowest cost
-        mark v known
-        for each edge (v, u) with weight w:
-            cost1 = v.cost + w // possibly new cost
-            cost2 = u.cost     // current best cost
-            if (cost1 < cost2)
+        b = find unknown node with smallest cost
+        b.known = true
+        for each edge (b, a) in E:
+            if not a.known:
+                if b.cost + weight(b, a) < a.cost:
+                    a.cost + b.cost + weight(b, a)
+                    a.path = b
 ```
+
+### Correctness of Dijsktra's Algorithm
+
+All "known" vertices have correct shortest path (this is true initially, and it
+is stays true by of induction). A really important fact is that if we mark a
+vertex as known, then we *will not* find a shorter path later. From this, we can
+prove via contradiction that there cannot be a shorter path than the one that
+Dijsktra gives us.
+
+### Asymptotic Analysis of Dijsktra's Algorithm
+
+Here are the running times for the various parts of the algorithm:
+
+- Setting initial cost of nodes: $O(|V|)$.
+- The while loop takes $O(|V^2| + |E|) = O(|V|^2)$.
+    - Looping through all unknown nodes: $O(|V|)$.
+        - Finding minimum element for each loop iteration: $O(|V|)$.
+            - Unless we use a priority queue... (see next analysis)
+    - Looping through the edges: $O(|E|)$ overall.
+
+Thus, Dijsktra's algorithm is $O(|V|^2)$. ***UNLESS...*** we use a priority
+queue!
+
+### Dijsktra's Algorithm with a Priority Queue
+
+Here's a slightly modified version of the algorithm:
+
+```
+Dijkstra(V, E, vStart):
+    for v in V:
+        v.cost = infinity
+        v.known = false
+
+    vStart.cost = 0
+
+    build heap with all vertices
+
+    while H not empty:
+        b = H.deleteMin()
+        b.known = true
+
+        for each edge (b, a) in E:
+            if not a.known:
+                newcost = b.cost + weight(b, a)
+                oldcost = a.cost
+                if newcost < oldcost:
+                    // reorder a in H by decreasing its cost
+                    H.decreaseKey(a, newcost - oldcost)
+
+                    a.path = b
+```
+
+And here is the new asymptotic analysis:
+
+- Setting initial cost of nodes: $O(|V|)$.
+- Building heap: $O(|V|\log |V|)$.
+- The while loop takes $O(|V|\log|V| + |E|\log|V|)$.
+    - Looping through all unknown nodes: $O(|V|)$.
+        - Getting minimum element from heap for each loop iteration:
+            $O(\log|V|)$.
+    - Looping through the edge and decreasing key: $O(|E|\log|V|)$ because
+        `decreaseKey` $\in O(\log |V|)$.
+
+Thus, Dijkstra's algorith (with a priority queue) is
+$O(|V|\log|V| + |E|\log|V|)$.
+
+### Density vs Sparsity
+
+If there are not many edges in a graph, then it is said to be *sparse*.
+Alternatively, if there are many edges in a graph, it is said to be *dense*. If
+your graph is sparse you will want to use the priority queue implementation, but
+if its dense, you will want to use the $O(|V|^2)$ implementation. However, note
+that most graphs are sparse, so the priority queue implementation is more
+commonly used.
