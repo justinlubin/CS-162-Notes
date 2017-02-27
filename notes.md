@@ -135,7 +135,7 @@ other words, not only is $T \in O(\log n)$, we also have that $T \in
 
 ### Substitution Method
 
-**IMPORTANT NOTE**: This method is *not* recommended. Because it actually
+**IMPORTANT NOTE**: This method is *not* recommended because it actually
 requires an inductive proof (not covered).
 
 Guess $O(?)$, then check. For example (in this case), guess $\log n$ because we
@@ -1604,3 +1604,119 @@ your graph is sparse you will want to use the priority queue implementation, but
 if its dense, you will want to use the $O(|V|^2)$ implementation. However, note
 that most graphs are sparse, so the priority queue implementation is more
 commonly used.
+
+# Sorting
+
+## Definition
+
+A *sorting algorithm* will take in an array and return it in sorted order. It is
+important to note that there is no "best" sorting algorithm for every single
+purpose. Having a sorted array may be useful when you want to pre-process some
+data for future operations, or if you want to get the first (or last) $k$
+elements of the array.
+
+## Specification
+
+A sorting algorithm will take an array $A$ of records (where there is a key and
+a value in each record), and a comparison function. The effect of the algorithm
+will be to reorganize the elements of $A$ such that if $i<j$, then $A[i]\leq
+A[j]$. Note also that the output array must have the exact same data as the
+input array, but just in a different order.
+
+## Variations
+
+There are a couple of variations that you might want in a sorting algorithm.
+
+- You can have it operate on linked lists instead of arrays.
+- You can have a *stable* sort, in which ordering ties between elements are
+    broken by their original positions in $A$.
+- You can have an *in-place* sort that uses $O(1)$ auxiliary space.
+- You can use an *external sort* if the array is too big for memory.
+
+## Categories of Sorting Algorithms
+
+- Simple algorithms (can still be useful because of low constants): $O(n^2)$
+    - Insertion sort
+    - Selection sort
+    - Shell sort
+    - Bubble sort
+- Fancier algorithms: $O(n\log n)$
+    - Heapsort
+    - Mergesort
+    - Quicksort
+- Specialized sorts (for when you have a specific range of data): $O(n)$
+    - Radix sort
+    - Bucket sort
+
+Note that it is proven that any comparison sort (general-purpose sort) is proven
+to be in $\Omega(n \log n)$).
+
+## Insertion Sort
+
+The general idea of insertion sort is, at step $k$, put the $k$-th element in
+the correct position among the first $k$ elements. Therefore, the loop invariant
+is that, at loop index $i$, the first $i$ elements are sorted.
+
+The best case for insertion sort is when the array is already sorted. In this
+case, insertion sort is $O(n)$.
+
+The average and the worst cases for insertion sort are both $O(n^2)$.
+
+## Selection Sort
+
+The general idea of selection sort is, at step $k$, find the smallest element
+among the not-yet-sorted elements and put it at position $k$. The loop invariant
+is that at loop index $i$, the first $i$ elements are the $i$ smallest elements
+of $A$ in sorted order (they will therefore not be touched for the rest of the
+algorithm).
+
+The best, average, and worst cases for selection sort are all $O(n^2)$ because
+the minimum of the array ($O(n)$) needs to be found for each element ($O(n)$).
+
+## Heapsort
+
+Here is the pseudocode for heapsort:
+
+```
+HeapSort(A):
+    build a heap with each A[i]
+    for i = 0 to length(A - 1):
+        A[i] = deleteMin()
+```
+
+This is $O(n\log n)$. With this implementation heapsort is not in-place, but
+there is an array trick to make it in-place.
+
+This exact same idea can be applied to AVL trees to get an AVL sort.
+
+## Divide and Conquer
+
+Before we move on to the recursive sorts, here is a general strategy for divide
+and conquer algorithms (such as quicksort and mergesort):
+
+1. Divide problem into two smaller parts
+1. Indepdently solve the parts (possibly via recursion and parallelism)
+1. Combine the two parts into a solution
+
+## Mergesort
+
+This was already done in class. See previous section on mergesort.
+
+## Quicksort
+
+Here is the pseudocode for quicksort:
+
+```
+Quicksort(A):
+    pick a pivot
+    divide elements into everything <  the pivot and
+                         everything >= the pivot
+    recursively sort the pieces
+```
+
+So, how do you pick the pivot?
+
+- Any choice is correct, but some are slow, so we want to pick a good pivot.
+- One good strategy is to pick the median of the elements with the lowest,
+    middle, and highest indices of the array. This will get a good approximation
+    of the distribution of the data in the array.
