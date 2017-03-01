@@ -398,7 +398,7 @@ call, the length of the subarray between `p` and `q` decreases, so eventually it
 must reach a point where there is only one element in the array, in which case
 we reach termination.
 
-# Data Structures I
+# Data Structures
 
 ## Dictionaries
 
@@ -1607,7 +1607,9 @@ commonly used.
 
 # Sorting
 
-## Definition
+## Introduction
+
+### Definition
 
 A *sorting algorithm* will take in an array and return it in sorted order. It is
 important to note that there is no "best" sorting algorithm for every single
@@ -1615,7 +1617,7 @@ purpose. Having a sorted array may be useful when you want to pre-process some
 data for future operations, or if you want to get the first (or last) $k$
 elements of the array.
 
-## Specification
+### Specification
 
 A sorting algorithm will take an array $A$ of records (where there is a key and
 a value in each record), and a comparison function. The effect of the algorithm
@@ -1623,7 +1625,7 @@ will be to reorganize the elements of $A$ such that if $i<j$, then $A[i]\leq
 A[j]$. Note also that the output array must have the exact same data as the
 input array, but just in a different order.
 
-## Variations
+### Variations
 
 There are a couple of variations that you might want in a sorting algorithm.
 
@@ -1633,7 +1635,7 @@ There are a couple of variations that you might want in a sorting algorithm.
 - You can have an *in-place* sort that uses $O(1)$ auxiliary space.
 - You can use an *external sort* if the array is too big for memory.
 
-## Categories of Sorting Algorithms
+### Categories of Sorting Algorithms
 
 - Simple algorithms (can still be useful because of low constants): $O(n^2)$
     - Insertion sort
@@ -1651,7 +1653,9 @@ There are a couple of variations that you might want in a sorting algorithm.
 Note that it is proven that any comparison sort (general-purpose sort) is proven
 to be in $\Omega(n \log n)$).
 
-## Insertion Sort
+## Iterative Sorts
+
+### Insertion Sort
 
 The general idea of insertion sort is, at step $k$, put the $k$-th element in
 the correct position among the first $k$ elements. Therefore, the loop invariant
@@ -1662,7 +1666,7 @@ case, insertion sort is $O(n)$.
 
 The average and the worst cases for insertion sort are both $O(n^2)$.
 
-## Selection Sort
+### Selection Sort
 
 The general idea of selection sort is, at step $k$, find the smallest element
 among the not-yet-sorted elements and put it at position $k$. The loop invariant
@@ -1673,7 +1677,9 @@ algorithm).
 The best, average, and worst cases for selection sort are all $O(n^2)$ because
 the minimum of the array ($O(n)$) needs to be found for each element ($O(n)$).
 
-## Heapsort
+## Recursive Sorts
+
+### Heapsort
 
 Here is the pseudocode for heapsort:
 
@@ -1698,11 +1704,11 @@ and conquer algorithms (such as quicksort and mergesort):
 1. Indepdently solve the parts (possibly via recursion and parallelism)
 1. Combine the two parts into a solution
 
-## Mergesort
+### Mergesort
 
 This was already done in class. See previous section on mergesort.
 
-## Quicksort
+### Quicksort
 
 Here is the pseudocode for quicksort:
 
@@ -1714,9 +1720,74 @@ Quicksort(A):
     recursively sort the pieces
 ```
 
+And here is a more specific description of the algorithm:
+
+- Swap pivot with `arr[lo]`
+- Use two cursors, `i = lo + 1; j = hi - 1`
+-
+```
+while (i < j):
+        if arr[j] > pivot:
+            j--
+        else if arr[i] < pivot:
+            i++
+        else:
+            swap arr[i] with arr[j]
+```
+- Swap pivot with `arr[i]`
+
 So, how do you pick the pivot?
 
 - Any choice is correct, but some are slow, so we want to pick a good pivot.
 - One good strategy is to pick the median of the elements with the lowest,
     middle, and highest indices of the array. This will get a good approximation
     of the distribution of the data in the array.
+
+Here is the analysis of quicksort:
+
+- Best case (when pivot is always the median): $O(n\log n)$.
+    - Recurrence relation: $T(n) = T(n/2) + n$.
+- Worst case (when pivot is always the smallest): $O(n^2)$.
+    - Recurrence relation: $T(n) = T(n-1) + n$.
+- Average case: $O(n\log n)$.
+
+## Cutoff
+
+It is not efficient to recurse down to one element, because recursion induces an
+overhead. Instead, for recursive sorting algorithms, what is commonly done is to
+recurse down to a minimum array size (like seven or so), then send it off to an
+iterative sorting algorithm like insertion sort. In other words, the constant
+factor for the recursive algorithms is bigger than the iterative algorithms.
+
+Additionally, this technique is very useful because most of the recursion occurs
+at the bottom of the branching tree (half of all branches occur at leaves), so
+if we can trim off some branching steps from there, that will give a big help.
+
+## Specialized Sorting Algorithms
+
+### Radix Sort
+
+The term *radix* refers to the base of a number system. Typically, in radix
+sort, we use a somewhat large power of two, like $128$ (although any number will
+work).
+
+(Side note: this sort was actually used as early as the 1890 US Census!)
+
+*Radix sort* is a specialized *bucket sort* (sorting data into various buckets)
+that operates on the digits of the input data one at a time.
+
+In radix sort, we do one "pass" per digit, where we categorize it into a bucket.
+Radix sort starts with the least significant digit (and goes to the most
+significant digit), and keeps the digits in each "pass" stable (in order). The
+invariant is that, after $k$ passes, the last $k$ digits are sorted.
+
+If the input size is $n$, the number of buckets (the radix) is $B$, and the
+number of passes is $P$, then the running time of the algorithm will be $O(P(B +
+n))$. It may seem as if you would want to simply minimize the radix, but if you
+do so, you will induce a larger number of passes (binary number strings are
+longer than hexadecimal number strings, for example).
+
+If our input range was, for example, strings of English letters up to length
+$15$, we would have $B=52$ (upper- and lower-case) and $P=15$, so radix sort
+would work in $O(15\cdot(52 + n))$ time. Note that this is less than $n \log n$
+for all $n > 33,000$.
