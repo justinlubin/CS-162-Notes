@@ -1791,3 +1791,95 @@ If our input range was, for example, strings of English letters up to length
 $15$, we would have $B=52$ (upper- and lower-case) and $P=15$, so radix sort
 would work in $O(15\cdot(52 + n))$ time. Note that this is less than $n \log n$
 for all $n > 33,000$.
+
+# Algorithmic Design
+
+## Algorithm Design Techniques
+
+There are four general categories of algorithms, the first two of which we have
+already covered:
+
+- Greedy algorithms (locally optimize in the hope of global optimization)
+- Divide and conquer (recursively solve smaller subproblems)
+- Dynamic programming
+- Backtracking
+
+We will now cover the last two.
+
+## Dynamic Programming
+
+### Introduction
+
+Many times, we will want to divide a problem into many subproblems. However, if
+the number of subproblems grows exponentially, we usually get $O(2^n)$ time,
+which is bad!
+
+To solve this issue, we can use *dyanmic programming*, which exploits the fact
+that many of these subproblems may be identical. As such, dynamic programming
+reuses already computed results in future computations, which is a technique
+known as *memoization*.
+
+### Example (Fibonacci Numbers)
+
+Here is a naive implementation of an algorithm to compute the Fibonacci numbers:
+
+```
+fib(n):
+    if n == 1 or n == 2:
+        return 1
+    else
+        return fib(n-1) + fib(n - 2)
+```
+
+However, this runs into a problem: because each call of `fib` results in two
+further calls to `fib`, this algorithm grows exponentially ($O(2^n)$). But, many
+of these calls overlap! We don't need to keep on re-computing, for example,
+`fib(2)`; we can store this result in some sort of table to be used in later
+computations (memoization). Here is what such an implementation would look like
+($O(n)$, assuming constant table lookup):
+
+```
+fib(n):
+    results = newTable() // each entry in results is the value of fib(n)
+    results[1] = 1
+    results[2] = 1
+    return fibHelper(n, results)
+
+fibHelper(n, results):
+    if n not in results:
+        results[n] = fibHelper(n-1) + fibHelper(n-2)
+    return results[n]
+```
+
+## Backtracking
+
+### Introduction
+
+A *backtracking* algorithm is one that tries many different choices in a
+problem, then remembers its previous choices in case it fails (typically with a
+stack or with recursion). It is good for solving problems with a large search
+space, such as solving a maze or sudoku.
+
+### Example (Maze and Eight Queens Problem)
+
+A maze can be solved with backtracking (which is basically DFS in this case).
+
+Another example is the eight queens problem, in which one must place eight
+queens on a chessboard such that no queen can attack any other one. Here is a
+backtracking algorithm to solve this problem:
+
+- Put down one queen at a time
+- Make sure there are no conflicts
+- However, we may get stuck, in which case we can BACKTRACK!
+
+In a brute force algorithm, we would have $8!=40,320$ searches, but with
+backtracking, if we construct the search tree one row at a time and reject
+row/diagonal attacks before completing a board, we get $15,720$ searches.
+
+## Extra Note: Parallelism
+
+This is not a design technique per se, but we can utilize multiple computers to
+help reduce the amount of time we spend on problems. Generally, parallelism
+works via threads, which are sequential programs (potentially a lot of
+threads). The basic operations on threads are `fork` (creates new threads) and
+`join` (join threads together).
